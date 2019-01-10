@@ -21,3 +21,7 @@
     text-align: center;
     cursor: pointer;
 }
+
+.cell.mine{
+    background-color: red;
+}
