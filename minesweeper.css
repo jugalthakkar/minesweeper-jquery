@@ -1,0 +1,23 @@
+#board {
+    border: solid gray 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 400px;
+    height: 600px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-around;
+}
+
+.cell {
+    border: solid white 2px;
+    height: 40px;
+    line-height: 40px;
+    width: 40px;
+    background-color: gray;
+    text-align: center;
+    cursor: pointer;
+}
