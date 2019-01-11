@@ -5,6 +5,14 @@ $(function () {
     const numberOfMines = 10;
     let board = [];
 
+    function start() {
+        board = initBoard(board);
+        board = plantMines(board, numberOfMines);
+        board = addNeighborCounts(board);
+        drawBoard(board, $('#board'));
+        return board;
+    }
+
     function didWin(board) {
         let closedCells = 0;
         _.each(board, function (row) {
@@ -17,12 +25,19 @@ $(function () {
         return (closedCells === numberOfMines);
     }
 
+    function didLose(board) {
+        let openMines = 0;
+        _.each(board, function (row) {
+            _.each(row, function (cell) {
+                if (cell.open && cell.mine) {
+                    openMines++;
+                }
+            });
+        });
+        return openMines > 0;
+    }
+
     function open(board, cell) {
-        if (cell.mine) {
-            alert('Game Over! Click OK to Restart.');
-            board = initBoard(board);
-            return board;
-        }
         cell.open = true;
         if (cell.neighboringMineCount === 0) {
             console.log('bubble');
@@ -73,11 +88,15 @@ $(function () {
             });
             $container.append($row);
         });
-        if (didWin(board)) {
-            setTimeout(function () {
-                alert('Congratulations, you have saved yourself from the mines!');
-            }, 100);
-        }
+        setTimeout(function () {
+            if (didWin(board)) {
+                alert('Congratulations, you have saved yourself from all the mines!');
+                board = start();
+            } else if (didLose(board)) {
+                alert('Oops, you stepped on a mine! All the best next time.');
+                board = start();
+            }
+        }, 100);
     }
 
     function mineExists(cell) {
@@ -135,8 +154,9 @@ $(function () {
         return board;
     }
 
-    board = initBoard(board);
-    board = plantMines(board, numberOfMines);
-    board = addNeighborCounts(board);
-    drawBoard(board, $('#board'));
+
+    start();
+    $('#restart').click(function () {
+        board = start();
+    })
 });
