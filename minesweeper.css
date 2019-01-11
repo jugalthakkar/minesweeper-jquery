@@ -1,4 +1,4 @@
-#board {
+#board, #scorecard {
     border: solid gray 5px;
     display: flex;
     flex-direction: column;
@@ -35,4 +35,14 @@
 .cell.flag {
     background-color: darkgreen;
     border-radius: 40px;
+}
+
+#scorecard{
+    background: black;
+    color: white;       
+    flex-direction: row;
+}
+
+#scorecard > * {
+    padding: 10px;
 }

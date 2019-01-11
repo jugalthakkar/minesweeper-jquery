@@ -4,12 +4,13 @@ $(function () {
     const numberOfColumns = 10;
     const numberOfMines = 10;
     let board = [];
-    let minesLeft = numberOfMines;
+    let startTime = 0;
 
     function start() {
         board = initBoard(board);
         board = plantMines(board, numberOfMines);
         board = addNeighborCounts(board);
+        startTime = Date.now();
         drawBoard(board, $('#board'));
         return board;
     }
@@ -38,12 +39,22 @@ $(function () {
         return openMines > 0;
     }
 
+    function getFlagCount(board) {
+        let flags = 0;
+        _.each(board, function (row) {
+            _.each(row, function (cell) {
+                if (cell.flag) {
+                    flags++;
+                }
+            });
+        });
+        return flags;
+    }
+
     function open(board, cell) {
         cell.open = true;
-        if (cell.neighboringMineCount === 0) {
-            console.log('bubble');
+        if (cell.neighboringMineCount === 0) {            
             const neighbors = getNeighbors(board, cell);
-            console.log(neighbors);
             _.each(neighbors, function (neighbor) {
                 if (!neighbor.open && !neighbor.flag) {
                     board = open(board, neighbor);
@@ -54,13 +65,7 @@ $(function () {
     }
 
     function toggleFlag(board, cell) {
-        if(cell.flag){
-            cell.flag = false;
-            minesLeft++;
-        }else{
-            cell.flag = true;
-            minesLeft--;
-        }        
+        cell.flag = !cell.flag;
         return board;
     }
 
@@ -72,7 +77,6 @@ $(function () {
 
             }
         }
-        minesLeft = numberOfMines;
         return board;
     }
 
@@ -175,8 +179,16 @@ $(function () {
         return board;
     }
 
+    function updateScore(incrementInSeconds) {
+        $('#time').text(Math.round((Date.now() - startTime) / 1000));
+        $('#mine-count').text(numberOfMines - getFlagCount(board));
+        setTimeout(function () {
+            updateScore(incrementInSeconds);
+        }, incrementInSeconds * 1000);
+    }
 
     start();
+    updateScore(1);
     $('#restart').click(function () {
         board = start();
     })
