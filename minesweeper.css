@@ -23,11 +23,11 @@
     background-color: darkgray;
 }
 
-.cell {
+.cell.open {
     background-color: lightgray;    
 }
 
-.cell.mine {
+.cell.open.mine {
     background-color: red;
     border-radius: 40px;
     /* margin:10px; */

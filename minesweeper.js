@@ -5,11 +5,44 @@ $(function () {
     const numberOfMines = 10;
     let board = [];
 
+    function didWin(board) {
+        let closedCells = 0;
+        _.each(board, function (row) {
+            _.each(row, function (cell) {
+                if (!cell.open) {
+                    closedCells++;
+                }
+            });
+        });
+        return (closedCells === numberOfMines);
+    }
+
+    function open(board, cell) {
+        if (cell.mine) {
+            alert('Game Over! Click OK to Restart.');
+            board = initBoard(board);
+            return board;
+        }
+        cell.open = true;
+        if (cell.neighboringMineCount === 0) {
+            console.log('bubble');
+            const neighbors = getNeighbors(board, cell);
+            console.log(neighbors);
+            _.each(neighbors, function (neighbor) {
+                if (!neighbor.open) {
+                    board = open(board, neighbor);
+                }
+            });
+        }
+        return board;
+    }
+
     function initBoard(board) {
         for (let i = 0; i < numberOfRows; i++) {
             board[i] = [];
             for (let j = 0; j < numberOfColumns; j++) {
-                board[i][j] = {};
+                board[i][j] = { row: i, column: j };
+
             }
         }
         return board;
@@ -24,18 +57,29 @@ $(function () {
                 const $cell = $('<span>')
                     .addClass('cell');
                 $row.append($cell);
-                if (cell.mine === true) {
-                    $cell.addClass('mine');
-                } else if (cell.neighboringMineCount > 0) {
-                    $cell.text(cell.neighboringMineCount);
+                if (cell.open) {
+                    $cell.addClass('open');
+                    if (cell.mine === true) {
+                        $cell.addClass('mine');
+                    } else if (cell.neighboringMineCount > 0) {
+                        $cell.text(cell.neighboringMineCount);
+                    }
                 } else {
-                    $cell.addClass('empty');
+                    $cell.click(function () {
+                        board = open(board, cell);
+                        drawBoard(board, $container);
+                    });
                 }
             });
             $container.append($row);
         });
+        if (didWin(board)) {
+            setTimeout(function () {
+                alert('Congratulations, you have saved yourself from the mines!');
+            }, 100);
+        }
     }
- 
+
     function mineExists(cell) {
         return cell.mine;
     }
@@ -47,39 +91,39 @@ $(function () {
             const randomColumn = Math.floor(Math.random() * numberOfColumns);
             const cell = board[randomRow][randomColumn];
             if (!cell.mine) {
-                cell.mine = true;
+                cell.mine = true;                // cell.open = true;
                 mineCount++;
             }
 
-        } while (mineCount < numberOfMines);        
+        } while (mineCount < numberOfMines);
         return board;
     };
 
-    function addNeighborCounts(board) {
-        function getNeighbors(cell) {
-            const rowStart = cell.row === 0 ? 0 : cell.row - 1;
-            const rowEnd = cell.row === numberOfRows - 1 ? numberOfRows - 1 : cell.row + 1;
-            const columnStart = cell.column === 0 ? 0 : cell.column - 1;
-            const columnEnd = cell.column === numberOfColumns - 1 ? numberOfColumns - 1 : cell.column + 1;
-            const neighbors = [];
+    function getNeighbors(board, cell) {
+        const rowStart = cell.row === 0 ? 0 : cell.row - 1;
+        const rowEnd = cell.row === numberOfRows - 1 ? numberOfRows - 1 : cell.row + 1;
+        const columnStart = cell.column === 0 ? 0 : cell.column - 1;
+        const columnEnd = cell.column === numberOfColumns - 1 ? numberOfColumns - 1 : cell.column + 1;
+        const neighbors = [];
 
-            for (let row = rowStart; row <= rowEnd; row++) {
-                for (let column = columnStart; column <= columnEnd; column++) {
-                    if (!(row === cell.row && column === cell.column)) {
-                        neighbors.push({ row: row, column: column });
-                    }
+        for (let row = rowStart; row <= rowEnd; row++) {
+            for (let column = columnStart; column <= columnEnd; column++) {
+                if (!(row === cell.row && column === cell.column)) {
+                    neighbors.push(board[row][column]);
                 }
             }
-            return neighbors;
         }
+        return neighbors;
+    }
+    function addNeighborCounts(board) {
         for (let row = 0; row < numberOfRows; row++) {
             for (let column = 0; column < numberOfColumns; column++) {
                 cell = board[row][column];
                 if (!mineExists(cell)) {
                     let neighboringMineCount = 0;
-                    const neighbors = getNeighbors({ row: row, column: column });                    
+                    const neighbors = getNeighbors(board, cell);
                     _.each(neighbors, function (neighbor) {
-                        if (mineExists(board[neighbor.row][neighbor.column])) {
+                        if (mineExists(neighbor)) {
                             neighboringMineCount++;
                         }
                     });
@@ -90,9 +134,9 @@ $(function () {
         }
         return board;
     }
-    
+
     board = initBoard(board);
-    board = plantMines(board, numberOfMines);    
+    board = plantMines(board, numberOfMines);
     board = addNeighborCounts(board);
     drawBoard(board, $('#board'));
 });
