@@ -30,5 +30,9 @@
 .cell.open.mine {
     background-color: red;
     border-radius: 40px;
-    /* margin:10px; */
+}
+
+.cell.flag {
+    background-color: darkgreen;
+    border-radius: 40px;
 }

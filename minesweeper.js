@@ -4,6 +4,7 @@ $(function () {
     const numberOfColumns = 10;
     const numberOfMines = 10;
     let board = [];
+    let minesLeft = numberOfMines;
 
     function start() {
         board = initBoard(board);
@@ -44,11 +45,22 @@ $(function () {
             const neighbors = getNeighbors(board, cell);
             console.log(neighbors);
             _.each(neighbors, function (neighbor) {
-                if (!neighbor.open) {
+                if (!neighbor.open && !neighbor.flag) {
                     board = open(board, neighbor);
                 }
             });
         }
+        return board;
+    }
+
+    function toggleFlag(board, cell) {
+        if(cell.flag){
+            cell.flag = false;
+            minesLeft++;
+        }else{
+            cell.flag = true;
+            minesLeft--;
+        }        
         return board;
     }
 
@@ -60,6 +72,7 @@ $(function () {
 
             }
         }
+        minesLeft = numberOfMines;
         return board;
     }
 
@@ -80,8 +93,16 @@ $(function () {
                         $cell.text(cell.neighboringMineCount);
                     }
                 } else {
+                    if (cell.flag === true) {
+                        $cell.addClass('flag');
+                    }
                     $cell.click(function () {
                         board = open(board, cell);
+                        drawBoard(board, $container);
+                    });
+                    $cell.contextmenu(function (e) {
+                        e.preventDefault();
+                        board = toggleFlag(board, cell);
                         drawBoard(board, $container);
                     });
                 }
@@ -110,7 +131,7 @@ $(function () {
             const randomColumn = Math.floor(Math.random() * numberOfColumns);
             const cell = board[randomRow][randomColumn];
             if (!cell.mine) {
-                cell.mine = true;                // cell.open = true;
+                cell.mine = true;
                 mineCount++;
             }
 
