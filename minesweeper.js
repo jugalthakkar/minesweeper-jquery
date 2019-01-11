@@ -3,59 +3,59 @@ $(function () {
     const numberOfRows = 15;
     const numberOfColumns = 10;
     const numberOfMines = 10;
+    let board = [];
 
-    function mineExists(mines, row, column) {
-        let mineAlreadyExists = false;
-        _.each(mines, function (mine) {
-            if (mine.row === row && mine.column === column) {
-                mineAlreadyExists = true;
+    function initBoard(board) {
+        for (let i = 0; i < numberOfRows; i++) {
+            board[i] = [];
+            for (let j = 0; j < numberOfColumns; j++) {
+                board[i][j] = {};
             }
-        });
-        return mineAlreadyExists;
+        }
+        return board;
     }
 
-    function plantMines(numberOfMines) {
-        const mines = [];
+    function drawBoard(board, $container) {
+        $container.empty();
+        _.each(board, function (row) {
+            const $row = $('<div>')
+                .addClass('row');
+            _.each(row, function (cell) {
+                const $cell = $('<span>')
+                    .addClass('cell');
+                $row.append($cell);
+                if (cell.mine === true) {
+                    $cell.addClass('mine');
+                } else if (cell.neighboringMineCount > 0) {
+                    $cell.text(cell.neighboringMineCount);
+                } else {
+                    $cell.addClass('empty');
+                }
+            });
+            $container.append($row);
+        });
+    }
+ 
+    function mineExists(cell) {
+        return cell.mine;
+    }
+
+    function plantMines(board, numberOfMines) {
+        let mineCount = 0;
         do {
             const randomRow = Math.floor(Math.random() * numberOfRows);
             const randomColumn = Math.floor(Math.random() * numberOfColumns);
-            if (!mineExists(mines, randomRow, randomColumn)) {
-                mines.push({ row: randomRow, column: randomColumn });
+            const cell = board[randomRow][randomColumn];
+            if (!cell.mine) {
+                cell.mine = true;
+                mineCount++;
             }
 
-        } while (mines.length < numberOfMines);
-        return mines;
+        } while (mineCount < numberOfMines);        
+        return board;
     };
 
-    function drawEmptyBoard($board) {
-        for (let row = 0; row < numberOfRows; row++) {
-            const $row = $('<div>')
-                .addClass('row');
-            for (let column = 0; column < numberOfColumns; column++) {
-                const $cell = $('<span>')
-                    .addClass('cell');
-                // .text(`${row},${column}`);
-                $row.append($cell);
-            }
-            $board.append($row);
-        }
-    }
-
-    function getCell$($board, row, column) {
-        const $rows = $board.find('.row');
-        const $row = $($rows[row]);
-        const $cells = $row.find('.cell');
-        return $($cells[column]);
-    }
-
-    function revealMines($board, mines) {
-        _.each(mines, function (mine) {
-            const $mine = getCell$($board, mine.row, mine.column);
-            $mine.addClass('mine');
-        });
-    }
-
-    function addNeighborCounts($board, mines) {
+    function addNeighborCounts(board) {
         function getNeighbors(cell) {
             const rowStart = cell.row === 0 ? 0 : cell.row - 1;
             const rowEnd = cell.row === numberOfRows - 1 ? numberOfRows - 1 : cell.row + 1;
@@ -74,27 +74,25 @@ $(function () {
         }
         for (let row = 0; row < numberOfRows; row++) {
             for (let column = 0; column < numberOfColumns; column++) {
-                if (!mineExists(mines, row, column)) {
+                cell = board[row][column];
+                if (!mineExists(cell)) {
                     let neighboringMineCount = 0;
-                    const neighbors = getNeighbors({ row: row, column: column });
-                    console.log(neighbors);
+                    const neighbors = getNeighbors({ row: row, column: column });                    
                     _.each(neighbors, function (neighbor) {
-                        if (mineExists(mines, neighbor.row, neighbor.column)) {
+                        if (mineExists(board[neighbor.row][neighbor.column])) {
                             neighboringMineCount++;
                         }
                     });
-                    const $cell = getCell$($board, row, column);
-                    $cell.text(neighboringMineCount);
+
+                    cell.neighboringMineCount = neighboringMineCount;
                 }
             }
         }
-
+        return board;
     }
-    const $board = $('#board');
-    drawEmptyBoard($('#board'));
-    const mines = plantMines(numberOfMines);
-    revealMines($board, mines);
-    addNeighborCounts($board, mines);
-    console.log(mines);
-    // $board.addClass('small');
+    
+    board = initBoard(board);
+    board = plantMines(board, numberOfMines);    
+    board = addNeighborCounts(board);
+    drawBoard(board, $('#board'));
 });
