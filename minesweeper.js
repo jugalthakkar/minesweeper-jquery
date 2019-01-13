@@ -114,13 +114,13 @@ $(function () {
             $container.append($row);
         });
         setTimeout(function () {
-            if (didWin(board)) {
-                alert('Congratulations, you have saved yourself from all the mines!');
-                board = start();
-            } else if (didLose(board)) {
+            if (didLose(board)) {
                 alert('Oops, you stepped on a mine! All the best next time.');
                 board = start();
-            }
+            } else if (didWin(board)) {
+                alert('Congratulations, you have saved yourself from all the mines!');
+                board = start();
+            } 
         }, 100);
     }
 
